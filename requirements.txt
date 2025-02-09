@@ -1,0 +1,14 @@
+openai==0.28.1
+transformers==4.40.1
+numpy==1.26.4
+func_timeout
+sqlparse
+requests
+pandas
+protobuf==5.26.1
+sql_metadata==2.11.0
+rapidfuzz
+tiktoken
+tqdm
+nltk
+flask
