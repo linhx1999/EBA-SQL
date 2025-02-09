@@ -30,6 +30,8 @@ Note: we use `openai==0.28.1`, which use `openai.ChatCompletion.create` to call 
 
 ## 🔧 Data Preparation
 
+The main dataset we used is BIRD(https://bird-bench.github.io/) and Spider(https://yale-lily.github.io/spider)
+
 In order to prepare the data more quickly, the `bird dev set related files` should be in `data/bird/dev/`,  the `spider set related files` should be in `data/spider/`.
 
 For more details, please refer to `🌟 Project Structure`.
