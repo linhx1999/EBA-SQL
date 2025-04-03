@@ -3,7 +3,7 @@
 
 
 ## Introduction
-In this paper, we propose **Entity-Based Analysis (EBA)**, a novel strategy to improve LLMs' question understanding and attention. Furthermore, we introduce EBA-SQL, a multi-agent collaboration framework based on this strategy, which comprises three agents: the **Logic-Driven Selector**, the **Logic-Driven Decomposer**, and the **Error-Driven Refiner**.
+In this paper, we propose **Entity-Based Analysis (EBA)**, a novel strategy to improve LLMs' question understanding and attention. Furthermore, we introduce EBA-SQL, a multi-agent collaboration framework based on this strategy, which comprises three agents: the **EBA-Driven Selector**, the **EBA-Driven Decomposer**, and the **Error-Driven Refiner**.
 
 <p align="center">
   <img src="./framework.jpg" alt="image" />
