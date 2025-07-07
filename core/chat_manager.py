@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from core.agents import Error_Driven_Refiner
-from core.agents_difficult import Logic_Driven_Selector, Logic_Driven_Decomposer
-from core.const import MAX_ROUND, SYSTEM_NAME, LOGIC_DRIVEN_SELECTOR_NAME
+from core.agents_difficult import EBA_Driven_Selector, EBA_Driven_Decomposer
+from core.const import MAX_ROUND, SYSTEM_NAME, EBA_DRIVEN_SELECTOR_NAME
 
 INIT_LOG__PATH_FUNC = None
 LLM_API_FUC = None
@@ -30,8 +30,8 @@ class ChatManager(object):
         self.dataset_mode = dataset_mode
         self.ping_network()
         self.chat_group = [
-            Logic_Driven_Selector(dataset_mode=self.dataset_mode, data_path=self.data_path, tables_json_path=self.tables_json_path, model_name=self.model_name, dataset_name=dataset_name, dataset_path=dataset_path, lazy=lazy, without_selector=without_selector),
-            Logic_Driven_Decomposer(dataset_name=dataset_name),
+            EBA_Driven_Selector(dataset_mode=self.dataset_mode, data_path=self.data_path, tables_json_path=self.tables_json_path, model_name=self.model_name, dataset_name=dataset_name, dataset_path=dataset_path, lazy=lazy, without_selector=without_selector),
+            EBA_Driven_Decomposer(dataset_name=dataset_name),
             Error_Driven_Refiner(data_path=self.data_path, dataset_name=dataset_name)
         ]
         INIT_LOG__PATH_FUNC(log_path)
@@ -54,7 +54,7 @@ class ChatManager(object):
         # we use `dict` type so value can be changed in the function
         start_time = time.time()
         if user_message['send_to'] == SYSTEM_NAME:
-            user_message['send_to'] = LOGIC_DRIVEN_SELECTOR_NAME
+            user_message['send_to'] = EBA_DRIVEN_SELECTOR_NAME
         for _ in range(MAX_ROUND):  # start chat in group
             self._chat_single_round(user_message)
             if user_message['send_to'] == SYSTEM_NAME:  # should terminate chat

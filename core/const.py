@@ -6,8 +6,8 @@ MAX_ROUND = 3
 ENGINE_GPT4 = 'gpt-4'
 ENGINE_GPT4_32K = 'gpt-4-32k'
 
-LOGIC_DRIVEN_SELECTOR_NAME = 'Logic_Driven_Selector'
-LOGIC_DRIVEN_DECOMPOSER_NAME = 'Logic_Driven_Decomposer'
+EBA_DRIVEN_SELECTOR_NAME = 'EBA_Driven_Selector'
+EBA_DRIVEN_DECOMPOSER_NAME = 'EBA_Driven_Decomposer'
 ERROR_DRIVEN_REFINER_NAME = 'Error_Driven_Refiner'
 SYSTEM_NAME = 'System'
 

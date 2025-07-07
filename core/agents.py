@@ -199,7 +199,7 @@ class Error_Driven_Refiner(BaseAgent):
         # column_details = message.get('columns_details_str')
         if 'error' in old_sql:
             message['try_times'] = 0
-            message['send_to'] = LOGIC_DRIVEN_DECOMPOSER_NAME
+            message['send_to'] = EBA_DRIVEN_DECOMPOSER_NAME
             message['pred'] = old_sql
             return
 

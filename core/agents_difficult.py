@@ -39,11 +39,11 @@ class BaseAgent(metaclass=abc.ABCMeta):
         pass
 
 
-class Logic_Driven_Selector(BaseAgent):
+class EBA_Driven_Selector(BaseAgent):
     """
     Get database description and then extract entities from questions before selecting related schema
     """
-    name = LOGIC_DRIVEN_SELECTOR_NAME
+    name = EBA_DRIVEN_SELECTOR_NAME
     description = "Get database description and then extract entities from questions before selecting related schema"
 
     def __init__(self, dataset_mode: str, data_path: str, tables_json_path: str, model_name: str, dataset_name:str, dataset_path:str, lazy: bool = False, without_selector: bool = False):
@@ -783,7 +783,7 @@ class Logic_Driven_Selector(BaseAgent):
             message['match_content_str'] = match_content
             message['columns_details_str'] = column_details
             # print(column_details)
-            message['send_to'] = LOGIC_DRIVEN_DECOMPOSER_NAME
+            message['send_to'] = EBA_DRIVEN_DECOMPOSER_NAME
         else:
             message['chosen_db_schem_dict'] = chosen_db_schem_dict
             message['desc_str'] = db_schema
@@ -791,14 +791,14 @@ class Logic_Driven_Selector(BaseAgent):
             message['pk_str'] = db_pk
             message['pruned'] = False
             message['match_content_str'] = match_content
-            message['send_to'] = LOGIC_DRIVEN_DECOMPOSER_NAME
+            message['send_to'] = EBA_DRIVEN_DECOMPOSER_NAME
 
 
-class Logic_Driven_Decomposer(BaseAgent):
+class EBA_Driven_Decomposer(BaseAgent):
     """
     Decompose the question and solve them using CoT
     """
-    name = LOGIC_DRIVEN_DECOMPOSER_NAME
+    name = EBA_DRIVEN_DECOMPOSER_NAME
     description = "Decompose the question and solve them using CoT"
 
     def __init__(self, dataset_name):
