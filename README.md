@@ -1,4 +1,4 @@
-LJP
+
 # EBA-SQL: A Multi-Agent Collaborative Framework with Entity-Based Analysis for Text-to-SQL 
 
 
