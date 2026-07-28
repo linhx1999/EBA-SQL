@@ -17,6 +17,7 @@ def init_spider_message(idx: int, item: dict) -> dict:
     difficulty = eval_hardness(item['sql'])
     user_message = {
         "idx": idx,
+        "question_id": item.get("question_id", idx),
         "db_id": db_id,
         "query": query,
         "evidence": evidence,
@@ -49,6 +50,7 @@ def init_bird_message(idx: int, item: dict, db_path: str=None, use_gold_schema: 
 
     user_message = {
         "idx": idx,
+        "question_id": item.get("question_id", idx),
         "db_id": db_id,
         "query": query,
         "evidence": evidence,
@@ -93,15 +95,16 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
     new_batch = []
     exclude_db_json_cnt = 0
     for k, item in enumerate(batch):
-        q_id = item['question_id']
-        if q_id not in unfinished_ids:
+        # q_id = item['question_id']
+        if k not in unfinished_ids:
             continue
         if dataset_mode == 'train':
             # skip excluded db_id
             if item['db_id'] in excluded_db_ids:
                 exclude_db_json_cnt += 1
                 continue
-        new_batch.append(item)
+        # new_batch.append(item)
+        new_batch.append((k, item))
     
     if exclude_db_json_cnt:
         print(f"excluded {exclude_db_json_cnt} excluded db json data")
@@ -112,8 +115,9 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
     run_time_start = time.time()
     with open(output_file, 'a+', encoding='utf-8') as fp:
         total_num = len(batch)
-        for cur_idx, item in tqdm(enumerate(batch), total=total_num):
-            idx = item['question_id']
+        # for cur_idx, item in tqdm(enumerate(batch), total=total_num):
+        for cur_idx, (idx, item) in tqdm(enumerate(batch), total=total_num):
+            # idx = item['question_id']
             db_id = item['db_id']
             print(f"\n\nprocessing: {cur_idx}/{total_num}\n\n", flush=True)
             if idx not in unfinished_ids: continue
@@ -147,10 +151,11 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
     print("运行时间: ", run_time, "秒")
     runTime = {"run_time": run_time}
     if dataset_name == "bird":
-        if dataset_mode == 'dev':
-            run_time_path = "outputs_59.91/bird/dev/run_time.json"
-        else:
-            run_time_path = "outputs_59.91/bird/test/run_time.json"
+        # if dataset_mode == 'dev':
+        #     run_time_path = "outputs_59.91/bird/dev/run_time.json"
+        # else:
+        #     run_time_path = "outputs_59.91/bird/test/run_time.json"
+        run_time_path = f"{out_dir}/run_time.json"
         directory = os.path.dirname(run_time_path)
         if not os.path.exists(directory):
             os.makedirs(directory)

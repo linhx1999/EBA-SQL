@@ -744,6 +744,7 @@ class EBA_Driven_Selector(BaseAgent):
         """
         if message['send_to'] != self.name: return
         self._message = message
+        question_id = message.get('question_id', message.get('idx'))
         idx, db_id, ext_sch, query, evidence = message.get('idx'), \
                                             message.get('db_id'), \
                                             message.get('extracted_schema', {}), \
@@ -754,13 +755,17 @@ class EBA_Driven_Selector(BaseAgent):
         if ext_sch:
             use_gold_schema = True
 
-        print(type(idx))
-        if self.match_dict.get(0) == None:
-            idx = str(idx)
-        else:
-            idx = int(idx)
+        # print(type(idx))
+        # if self.match_dict.get(0) == None:
+        #     idx = str(idx)
+        # else:
+        #     idx = int(idx)
 
-        matched_list = self.match_dict.get(idx)
+        # matched_list = self.match_dict.get(idx)
+        matched_list = self.match_dict.get(str(question_id))
+        if matched_list is None:
+            matched_list = self.match_dict.get(question_id, [])
+
         message['matched_list'] = matched_list
         # print(matched_list)
         db_schema, db_fk, db_pk, chosen_db_schem_dict, match_content, column_details = self._get_db_desc_str(db_id=db_id, extracted_schema=ext_sch, use_gold_schema=use_gold_schema, complete=True)
