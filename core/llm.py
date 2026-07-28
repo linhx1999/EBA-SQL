@@ -33,22 +33,32 @@ def init_log_path(my_log_path):
 def api_func(prompt:str):
     global MODEL_NAME
     print(f"\nUse OpenAI model: {MODEL_NAME}\n")
+    request_kwargs = {
+        "model": MODEL_NAME,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    if MAX_TOKENS is not None:
+        request_kwargs["max_tokens"] = MAX_TOKENS
+
     if 'Llama' in MODEL_NAME:
         openai.api_version = None
         openai.api_type = "open_ai"
         openai.api_key = "EMPTY"
-        response = openai.ChatCompletion.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}]
-        )
+        # response = openai.ChatCompletion.create(
+        #     model=MODEL_NAME,
+        #     messages=[{"role": "user", "content": prompt}]
+        # )
+        response = openai.ChatCompletion.create(**request_kwargs)
     else:
-        response = openai.ChatCompletion.create(
-            # engine="gpt-3.5-turbo",
-            # messages=[{"role": "user", "content": prompt}]
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1
-        )
+        request_kwargs["temperature"] = 0
+        # response = openai.ChatCompletion.create(
+        #     # engine="gpt-3.5-turbo",
+        #     # messages=[{"role": "user", "content": prompt}]
+        #     model=MODEL_NAME,
+        #     messages=[{"role": "user", "content": prompt}],
+        #     temperature=0.1
+        # )
+        response = openai.ChatCompletion.create(**request_kwargs)
     text = response['choices'][0]['message']['content'].strip()
     prompt_token = response['usage']['prompt_tokens']
     response_token = response['usage']['completion_tokens']
