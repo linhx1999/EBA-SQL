@@ -77,7 +77,10 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
     if os.path.exists(output_file):
         output_data_lst = load_jsonl_file(output_file)
         for o in output_data_lst:
-            finished_ids.add(o['idx'])
+            # only treat records with a predicted SQL as finished,
+            # so failed items will be retried on re-run
+            if 'pred' in o:
+                finished_ids.add(o['idx'])
 
     unfinished_ids = [n for n in range(len(batch)) if n not in finished_ids and n >= start_pos]
     print(f"len(unfinished_data) = {len(unfinished_ids)}")
@@ -170,7 +173,7 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
             output_json_list = sorted(output_json_list, key=lambda i: i['idx'])
             eval_dict = {}
             for o in output_json_list:
-                pred_sql = o['pred'].strip()
+                pred_sql = o.get('pred', '').strip()
                 pred_sql = replace_multiple_spaces(pred_sql)
                 sql_and_db_str = pred_sql + '\t' + '----- bird -----' + '\t' + o['db_id']
                 eval_dict[str(o['idx'])] = sql_and_db_str
