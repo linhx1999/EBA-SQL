@@ -73,7 +73,7 @@ def safe_call_llm(input_prompt, **kwargs) -> str:
     global total_response_tokens
     global world_dict
 
-    for i in range(5):
+    for i in range(3):
         try:
             if log_path is None:
                 # print(input_prompt)
@@ -127,11 +127,11 @@ def safe_call_llm(input_prompt, **kwargs) -> str:
         except Exception as ex:
             print(ex)
             print(f'Request {MODEL_NAME} failed. try {i} times. Sleep 20 secs.')
-            time.sleep(20)
+            time.sleep(5)
 
     raise ValueError('safe_call_llm error!')
 
 
 if __name__ == "__main__":
-    res = safe_call_llm('我爸妈结婚为什么不邀请我？')
+    res = safe_call_llm('hi')
     print(res)
