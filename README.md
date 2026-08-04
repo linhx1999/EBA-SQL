@@ -52,6 +52,17 @@ We provide the script for Linux systems and Windows systems.
 
 **run_evaluation.sh** and **run_evaluation.bat**.
 
+To create a separate Spider prediction file without backtick identifiers while
+preserving the original prediction, run:
+
+```bash
+python scripts/remove_sql_backticks.py \
+  outputs/ebasql_spider_dev_qwen3.6-35b-a3b/pred_dev.sql
+```
+
+The default output is `pred_dev_no_backticks.sql` beside the input file. Pass
+`--force` explicitly if an existing derived file should be replaced.
+
 ## 🌟 Project Structure
 
 ```txt
@@ -77,6 +88,8 @@ We provide the script for Linux systems and Windows systems.
 |  ├─exec_eval.py
 |  ├─parse.py
 |  ├─process_sql.py
+├─scripts
+|  ├─remove_sql_backticks.py # create a derived prediction without backticks
 ├─evaluation_bird_ex.sh # bird evaluation script in Linux
 ├─evaluation_bird_ex.bat # bird evaluation script in Windows
 ├─README.md
@@ -86,4 +99,3 @@ We provide the script for Linux systems and Windows systems.
 ├─run.sh # generation and evaluation script in Linux
 ├─run_spider.bat # run script for spider dataset
 ```
-
