@@ -12,9 +12,9 @@ export MODEL_NAME="qwen3.6-35b-a3b"
 # export MODEL_NAME="Qwen3.6-35B-A3B"
 # export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
 
-DATA_ROOT="../datasets/bird/dev"
-OUTPUT_DIR="outputs/ebasql_bird_dev_${MODEL_NAME}"
-OUTPUT_FILE="outputs/ebasql_bird_dev_${MODEL_NAME}/ebasql_bird_dev_${MODEL_NAME}.jsonl"
+DATA_ROOT="../SAGE-SQL/datasets/bird/dev"
+OUTPUT_DIR="outputs/ebasql_bird_dev_${MODEL_NAME}_run_2"
+OUTPUT_FILE="${OUTPUT_DIR}/ebasql_bird_dev_${MODEL_NAME}.jsonl"
 LOG_FILE="outputs/ebasql_bird_dev_${MODEL_NAME}/run.log"
 
 
