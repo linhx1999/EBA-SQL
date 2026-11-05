@@ -2,9 +2,10 @@
 set -euo pipefail
 
 export OPENAI_API_TYPE="open_ai"
-export OPENAI_API_BASE="http://127.0.0.1:8002/v1"
+export OPENAI_API_BASE="http://127.0.0.1:8004/v1"
 export OPENAI_API_KEY="EMPTY"
-export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
+export MODEL_NAME="Qwen3.6-35B-A3B"
+# export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
 
 DATA_ROOT="../datasets/bird/dev"
 OUTPUT_DIR="outputs/ebasql_bird_dev_${MODEL_NAME}"
