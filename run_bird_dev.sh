@@ -2,9 +2,14 @@
 set -euo pipefail
 
 export OPENAI_API_TYPE="open_ai"
-export OPENAI_API_BASE="http://127.0.0.1:8004/v1"
+
+export OPENAI_API_BASE="https://llm-80oiqtb4br9yy56x.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
 export OPENAI_API_KEY="EMPTY"
-export MODEL_NAME="Qwen3.6-35B-A3B"
+export MODEL_NAME="qwen3.6-35b-a3b"
+
+# export OPENAI_API_BASE="http://127.0.0.1:8004/v1"
+# export OPENAI_API_KEY="EMPTY"
+# export MODEL_NAME="Qwen3.6-35B-A3B"
 # export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
 
 DATA_ROOT="../datasets/bird/dev"
