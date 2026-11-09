@@ -116,6 +116,9 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
 
     count = 0
     run_time_start = time.time()
+    out_dir = os.path.dirname(output_file)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
     with open(output_file, 'a+', encoding='utf-8') as fp:
         total_num = len(batch)
         # for cur_idx, item in tqdm(enumerate(batch), total=total_num):
