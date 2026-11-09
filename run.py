@@ -10,6 +10,54 @@ import sys
 import os
 import json
 import traceback
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+
+_worker_manager = None
+
+
+def _init_worker(manager_kwargs: dict, init_lock) -> None:
+    global _worker_manager
+    manager_kwargs = dict(manager_kwargs)
+    log_path = manager_kwargs["log_path"] or "run.log"
+    # Both run.log and api_trace.json must be isolated per process.
+    manager_kwargs["log_path"] = os.path.join(
+        os.path.dirname(log_path), f"worker_{os.getpid()}", os.path.basename(log_path)
+    )
+    # Selector initialization may generate shared matching/summary caches.
+    with init_lock:
+        _worker_manager = ChatManager(**manager_kwargs)
+
+
+def _process_message(user_message: dict, chat_manager=None) -> dict:
+    if chat_manager is None:
+        chat_manager = _worker_manager
+    try:
+        chat_manager.start(user_message)
+        for key in ("desc_str", "fk_str", "send_to"):
+            user_message.pop(key, None)
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Exception: {e}, sleep 20 seconds.", flush=True)
+        time.sleep(20)
+    return user_message
+
+
+def _run_messages(messages, manager_kwargs: dict, workers: int):
+    if workers == 1:
+        chat_manager = ChatManager(**manager_kwargs)
+        for message in messages:
+            yield _process_message(message, chat_manager)
+    else:
+        context = multiprocessing.get_context("spawn")
+        with ProcessPoolExecutor(
+            max_workers=workers, mp_context=context, initializer=_init_worker,
+            initargs=(manager_kwargs, context.Lock()),
+        ) as executor:
+            futures = [executor.submit(_process_message, message) for message in messages]
+            for future in as_completed(futures):
+                yield future.result()
 
 
 def init_spider_message(idx: int, item: dict) -> dict:
@@ -62,8 +110,10 @@ def init_bird_message(idx: int, item: dict, db_path: str=None, use_gold_schema: 
     return user_message
 
 
-def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, start_pos=0, log_file=None, dataset_mode='dev', use_gold_schema=False, without_selector=False):
-    chat_manager = ChatManager(data_path=db_path,
+def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, start_pos=0, log_file=None, dataset_mode='dev', use_gold_schema=False, without_selector=False, workers=1):
+    if workers < 1:
+        raise ValueError("workers must be at least 1")
+    manager_kwargs = dict(data_path=db_path,
                                tables_json_path=tables_json_path,
                                log_path=log_file,
                                dataset_name=dataset_name,
@@ -119,36 +169,16 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
     out_dir = os.path.dirname(output_file)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
+    messages = []
+    for idx, item in batch:
+        if dataset_name == "spider":
+            messages.append(init_spider_message(idx, item))
+        elif dataset_name == "bird":
+            messages.append(init_bird_message(idx, item, db_path=db_path, use_gold_schema=use_gold_schema))
     with open(output_file, 'a+', encoding='utf-8') as fp:
-        total_num = len(batch)
-        # for cur_idx, item in tqdm(enumerate(batch), total=total_num):
-        for cur_idx, (idx, item) in tqdm(enumerate(batch), total=total_num):
-            # idx = item['question_id']
-            db_id = item['db_id']
-            print(f"\n\nprocessing: {cur_idx}/{total_num}\n\n", flush=True)
-            if idx not in unfinished_ids: continue
-            if dataset_name == "spider":
-                user_message = init_spider_message(idx, item)
-            elif dataset_name == "bird":
-                user_message = init_bird_message(idx, item, db_path=db_path, use_gold_schema=use_gold_schema)  # imitate user send a question to system
-            try:
-                # if count >= 5: break
-                chat_manager.start(user_message)
-                # count += 1
-                try:
-                    del user_message['desc_str']
-                    del user_message['fk_str']
-                    del user_message['send_to']
-                except:
-                    pass
-            except Exception as e:
-                # for debug
-                traceback.print_exc()
-                print(f"Exception: {e}, sleep 20 seconds.", flush=True)
-                time.sleep(20)
-                # raise Exception(str(e))
+        for user_message in tqdm(_run_messages(messages, manager_kwargs, workers), total=len(messages)):
+            # Only the parent writes results; completed items are flushed immediately.
             print(json.dumps(user_message, ensure_ascii=False), file=fp, flush=True)
-            print(f"\n\ndeal {cur_idx+1}/{total_num} done!\n\n")
         print(f"Result dump into {output_file}", file=sys.stdout, flush=True)
 
     out_dir = os.path.dirname(output_file)
@@ -186,7 +216,7 @@ def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, 
     elif dataset_name == "spider":
         evaluation_file_path = f"{out_dir}/pred_{dataset_mode}.sql"
         spider_sql_lst = []
-        output_json_lst = load_jsonl_file(output_file)
+        output_json_lst = sorted(load_jsonl_file(output_file), key=lambda item: item['idx'])
         for output_json in output_json_lst:
             if output_json.get('pred', 666) != 666:
                 pred_sql = output_json['pred']
@@ -222,7 +252,10 @@ if __name__ == "__main__":
     parser.add_argument('--start_pos', type=int, default=0, help='start position of a batch')
     parser.add_argument('--use_gold_schema', action='store_true', default=False)
     parser.add_argument('--without_selector', action='store_true', default=False)
+    parser.add_argument('--workers', type=int, default=1, help='number of parallel worker processes (default: 1)')
     args = parser.parse_args()
+    if args.workers < 1:
+        parser.error('--workers must be at least 1')
     for key, value in vars(args).items():
         print(f"{key}: {value}")
 
@@ -242,5 +275,6 @@ if __name__ == "__main__":
         log_file=args.log_file,
         start_pos=args.start_pos,
         use_gold_schema=args.use_gold_schema,
-        without_selector=args.without_selector
+        without_selector=args.without_selector,
+        workers=args.workers
     )

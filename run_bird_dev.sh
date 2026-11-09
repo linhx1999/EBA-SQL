@@ -3,22 +3,26 @@ set -euo pipefail
 
 export OPENAI_API_TYPE="open_ai"
 
-export OPENAI_API_BASE="https://llm-80oiqtb4br9yy56x.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-export OPENAI_API_KEY="EMPTY"
-export MODEL_NAME="qwen3.6-35b-a3b"
-
-# export OPENAI_API_BASE="http://127.0.0.1:8004/v1"
+# export OPENAI_API_BASE="https://llm-80oiqtb4br9yy56x.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
 # export OPENAI_API_KEY="EMPTY"
+# export MODEL_NAME="qwen3.6-35b-a3b"
+
+export OPENAI_API_BASE="http://127.0.0.1:8003/v1"
+export OPENAI_API_KEY="EMPTY"
 # export MODEL_NAME="Qwen3.6-35B-A3B"
-# export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
+export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
+# export MODEL_NAME="Ministral-3-14B-Reasoning-2512"
 
 DATA_ROOT="../SAGE-SQL/datasets/bird/dev"
 OUTPUT_DIR="outputs/ebasql_bird_dev_${MODEL_NAME}_run_2"
-OUTPUT_FILE="${OUTPUT_DIR}/ebasql_bird_dev_${MODEL_NAME}.jsonl"
-LOG_FILE="outputs/ebasql_bird_dev_${MODEL_NAME}/run.log"
+OUTPUT_FILE="${OUTPUT_DIR}/ebasql_bird_dev_${MODEL_NAME}_run_2.jsonl"
+LOG_FILE="${OUTPUT_DIR}/run.log"
+WORKERS=8
 
 
+# Override with WORKERS=4 or --workers 4.
 python run.py \
+    --workers "${WORKERS}" \
     --dataset_name bird \
     --dataset_mode dev \
     --input_file "${DATA_ROOT}/dev.json" \

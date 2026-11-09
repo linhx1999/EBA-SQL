@@ -46,6 +46,19 @@ You should open code comments for different usage.
 - `run.bat` for Windows OS.
 - `run_spider.bat` for spider dataset.
 
+For BIRD Dev, enable parallel question processing with:
+
+```bash
+bash run_bird_dev.sh --workers 4
+# Equivalent: WORKERS=4 bash run_bird_dev.sh
+```
+
+The default is one worker (serial). Each process has its own agents and logs;
+parallel logs and API traces go into `worker_<pid>/` beside the configured log
+file. Initialization is serialized to protect shared caches. The parent appends
+results as questions finish; evaluation output is sorted by input index.
+Existing predictions are skipped on restart, while failed items are retried.
+
 
 ## 📝Evaluation Dataset
 We provide the script for Linux systems and Windows systems.
