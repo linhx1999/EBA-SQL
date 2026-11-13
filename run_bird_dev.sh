@@ -13,14 +13,17 @@ export OPENAI_API_KEY="EMPTY"
 export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
 # export MODEL_NAME="Ministral-3-14B-Reasoning-2512"
 
+RUN_ID="cost_run_1"
+
 DATA_ROOT="../SAGE-SQL/datasets/bird/dev"
-OUTPUT_DIR="outputs/ebasql_bird_dev_${MODEL_NAME}_run_2"
-OUTPUT_FILE="${OUTPUT_DIR}/ebasql_bird_dev_${MODEL_NAME}_run_2.jsonl"
+OUTPUT_DIR="outputs/ebasql_bird_dev_${MODEL_NAME}_${RUN_ID}"
+OUTPUT_FILE="${OUTPUT_DIR}/ebasql_bird_dev_${MODEL_NAME}_${RUN_ID}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 WORKERS=8
 
 
-# Override with WORKERS=4 or --workers 4.
+cd "$(dirname "${BASH_SOURCE[0]}")"
+# Override worker count with --workers 4.
 python run.py \
     --workers "${WORKERS}" \
     --dataset_name bird \

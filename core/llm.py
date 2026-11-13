@@ -4,6 +4,7 @@ import time
 from core.api_config import *
 import openai
 import os
+from core import cost_log
 
 MAX_TRY = 5
 
@@ -48,7 +49,7 @@ def api_func(prompt:str):
         #     model=MODEL_NAME,
         #     messages=[{"role": "user", "content": prompt}]
         # )
-        response = openai.ChatCompletion.create(**request_kwargs)
+        response = cost_log.request(openai.ChatCompletion.create, **request_kwargs)
     else:
         request_kwargs["temperature"] = 0
         # response = openai.ChatCompletion.create(
@@ -58,10 +59,10 @@ def api_func(prompt:str):
         #     messages=[{"role": "user", "content": prompt}],
         #     temperature=0.1
         # )
-        response = openai.ChatCompletion.create(**request_kwargs)
+        response = cost_log.request(openai.ChatCompletion.create, **request_kwargs)
     text = response['choices'][0]['message']['content'].strip()
-    prompt_token = response['usage']['prompt_tokens']
-    response_token = response['usage']['completion_tokens']
+    prompt_token = (response.get('usage') or {}).get('prompt_tokens')
+    response_token = (response.get('usage') or {}).get('completion_tokens')
     return text, prompt_token, response_token
 
 
@@ -73,6 +74,7 @@ def safe_call_llm(input_prompt, **kwargs) -> str:
     global total_response_tokens
     global world_dict
 
+    cost_log.begin_call(kwargs)
     for i in range(3):
         try:
             if log_path is None:
@@ -108,8 +110,8 @@ def safe_call_llm(input_prompt, **kwargs) -> str:
                     world_dict['response_token'] = response_token
                     
 
-                    total_prompt_tokens += prompt_token
-                    total_response_tokens += response_token
+                    total_prompt_tokens += prompt_token or 0
+                    total_response_tokens += response_token or 0
 
                     world_dict['cur_total_prompt_tokens'] = total_prompt_tokens
                     world_dict['cur_total_response_tokens'] = total_response_tokens
@@ -125,7 +127,7 @@ def safe_call_llm(input_prompt, **kwargs) -> str:
                     print(f'\n total_prompt_tokens,total_response_tokens: {total_prompt_tokens} {total_response_tokens}\n')
             return sys_response
         except Exception as ex:
-            print(ex)
+            print(type(ex).__name__)
             print(f'Request {MODEL_NAME} failed. try {i} times. Sleep 20 secs.')
             time.sleep(5)
 

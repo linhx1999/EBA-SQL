@@ -9,7 +9,7 @@ import argparse
 import sys
 import os
 import json
-import traceback
+from core import cost_log
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -20,6 +20,7 @@ _worker_manager = None
 def _init_worker(manager_kwargs: dict, init_lock) -> None:
     global _worker_manager
     manager_kwargs = dict(manager_kwargs)
+    cost_log.configure(*manager_kwargs.pop("_cost_context", (None, None)))
     log_path = manager_kwargs["log_path"] or "run.log"
     # Both run.log and api_trace.json must be isolated per process.
     manager_kwargs["log_path"] = os.path.join(
@@ -33,19 +34,31 @@ def _init_worker(manager_kwargs: dict, init_lock) -> None:
 def _process_message(user_message: dict, chat_manager=None) -> dict:
     if chat_manager is None:
         chat_manager = _worker_manager
+    started = time.monotonic()
+    record = cost_log.begin_question(user_message['idx'], user_message['db_id'])
+    record['status'] = 'failed'
     try:
         chat_manager.start(user_message)
+        record['status'] = 'success'
         for key in ("desc_str", "fk_str", "send_to"):
             user_message.pop(key, None)
     except Exception as e:
-        traceback.print_exc()
-        print(f"Exception: {e}, sleep 20 seconds.", flush=True)
+        record["exception_class"] = type(e).__name__
+        print(f"Exception: {type(e).__name__}, sleep 20 seconds.", flush=True)
         time.sleep(20)
+    finally:
+        user_message['exec_time'] = time.monotonic() - started
+        user_message['execution_id'] = record['execution_id']
+        record['exec_time'] = user_message['exec_time']
+        cost_log.append('question_costs.jsonl', record)
     return user_message
 
 
 def _run_messages(messages, manager_kwargs: dict, workers: int):
+    manager_kwargs = dict(manager_kwargs)
+    manager_kwargs['_cost_context'] = (str(cost_log._directory) if cost_log._directory else None, cost_log._session_id)
     if workers == 1:
+        cost_log.configure(*manager_kwargs.pop('_cost_context'))
         chat_manager = ChatManager(**manager_kwargs)
         for message in messages:
             yield _process_message(message, chat_manager)
@@ -110,6 +123,7 @@ def init_bird_message(idx: int, item: dict, db_path: str=None, use_gold_schema: 
     return user_message
 
 
+@cost_log.log_run
 def run_batch(dataset_name, input_file, output_file, db_path, tables_json_path, start_pos=0, log_file=None, dataset_mode='dev', use_gold_schema=False, without_selector=False, workers=1):
     if workers < 1:
         raise ValueError("workers must be at least 1")

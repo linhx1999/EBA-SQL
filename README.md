@@ -112,3 +112,50 @@ The default output is `pred_dev_no_backticks.sql` beside the input file. Pass
 ├─run.sh # generation and evaluation script in Linux
 ├─run_spider.bat # run script for spider dataset
 ```
+
+## Generation cost logs
+
+`run_bird_dev.sh` uses an explicit `RUN_ID=cost_run_1` in both the output directory
+and prediction filename. Select the model and endpoint before running. Start a
+fresh directory for complete cost coverage; resuming cannot recover usage for
+previously completed questions.
+
+`run.py` now writes the following alongside predictions:
+
+- `llm_attempts.jsonl`: process-locked request attempts with stage, model,
+  session/execution/call IDs, retry number, input/output/reasoning tokens,
+  finish reason, elapsed time, prompt hash, and exception class. Worker
+  initialization (including its network probe) is labeled
+  `scope=worker_initialization` rather than assigned to a question.
+- `question_costs.jsonl`: worker execution time and success/exception outcome,
+  including failed executions. Prediction records also gain `exec_time` and
+  `execution_id`. Success here means the pipeline returned, not correct SQL.
+- `run_sessions.jsonl`: append-only invocation settings, input/code hashes,
+  model, token-limit environment setting, status and wall time.
+  `run_config.json` and `run_time.json` describe the latest invocation only.
+
+The three-attempt outer loop and existing resume rule are preserved: records
+containing `pred` are skipped; records without it are retried. Retain all request
+records across retries/resumes when calculating consumed cost. The SDK may retry
+internally, so these are SDK invocations rather than a guaranteed count of HTTP
+requests. Missing usage is null; valid content without usage no longer causes a
+retry merely because token fields are absent. Legacy cumulative counters sum
+known usage only. Reasoning tokens must not be added to completion tokens blindly.
+
+Question time includes pipeline work and failure/retry sleeps, excluding queueing
+and worker initialization. Invocation time includes initialization and export.
+Neither is GPU time. Shared initialization/cache costs must be included once in
+whole-run cost, not discarded for lacking question IDs. Exception messages are
+reduced to their classes in the request/error logs to avoid credential leakage.
+
+A run-directory lock rejects simultaneous runs to the same output directory;
+it does not validate experiment identity. Keep model, settings, data and code
+unchanged for resumes. Abrupt termination can leave a partial last JSONL line
+or omit the session finalization; inspect logs before aggregation.
+
+Offline validation (mock requests, no inference):
+
+```bash
+python -m unittest discover -s tests -v
+bash -n run_bird_dev.sh
+```
