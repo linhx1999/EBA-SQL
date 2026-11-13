@@ -13,6 +13,8 @@ export OPENAI_API_KEY="EMPTY"
 export MODEL_NAME="Qwen2.5-Coder-7B-Instruct"
 # export MODEL_NAME="Ministral-3-14B-Reasoning-2512"
 
+export MAX_TOKENS="16384"
+
 RUN_ID="cost_run_1"
 
 DATA_ROOT="../SAGE-SQL/datasets/bird/dev"
