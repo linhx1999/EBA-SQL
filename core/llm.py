@@ -4,7 +4,12 @@ import time
 from core.api_config import *
 import openai
 import os
+import math
 from core import cost_log
+
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0"))
+if not math.isfinite(TEMPERATURE) or not 0 <= TEMPERATURE <= 2:
+    raise ValueError("TEMPERATURE must be a finite number between 0 and 2")
 
 MAX_TRY = 5
 
@@ -51,7 +56,7 @@ def api_func(prompt:str):
         # )
         response = cost_log.request(openai.ChatCompletion.create, **request_kwargs)
     else:
-        request_kwargs["temperature"] = 0
+        request_kwargs["temperature"] = TEMPERATURE
         # response = openai.ChatCompletion.create(
         #     # engine="gpt-3.5-turbo",
         #     # messages=[{"role": "user", "content": prompt}]

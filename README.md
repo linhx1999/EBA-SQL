@@ -159,3 +159,14 @@ Offline validation (mock requests, no inference):
 python -m unittest discover -s tests -v
 bash -n run_bird_dev.sh
 ```
+
+### Spider dev launcher
+
+Use `bash run_spider_dev.sh` for inference on Spider dev. This replaces the two
+model-specific Spider launchers. Configure the endpoint, model, `TEMPERATURE`
+(default 0), `MAX_TOKENS` (16384), `WORKERS` (16), and `RUN_ID` explicitly at the
+top of the script. The data root defaults to `../SAGE-SQL/datasets/spider`.
+Outputs and cost logs go to `outputs/ebasql_spider_dev_<MODEL_NAME>_<RUN_ID>/`.
+Use a separate run ID for each repeat or configuration change. Evaluation is
+not launched automatically. The OpenAI request branch uses the configured
+temperature; the legacy Llama branch retains its existing service defaults.

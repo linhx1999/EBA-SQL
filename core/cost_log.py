@@ -85,6 +85,7 @@ def log_run(function):
             record['code_sha256'] = {name: hashlib.sha256((source / name).read_bytes()).hexdigest()
                                      for name in ['run.py', 'core/llm.py', 'core/cost_log.py']}
             record['max_tokens'] = os.environ.get('MAX_TOKENS')
+            record['temperature'] = float(os.environ.get('TEMPERATURE', '0'))
             record['input_sha256'] = hashlib.sha256(Path(params.arguments['input_file']).read_bytes()).hexdigest()
             try:
                 return_value = function(*args, **kwargs)
